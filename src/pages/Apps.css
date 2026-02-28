@@ -1,0 +1,127 @@
+.apps-page h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+}
+
+.apps-page .muted {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 1.25rem;
+}
+
+.card-inline {
+  margin-bottom: 1.25rem;
+}
+
+.card-inline input {
+  max-width: 260px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+.card-inline button:not(.danger) {
+  padding: 0.5rem 1rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.app-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.app-header strong {
+  text-transform: capitalize;
+  font-size: 1.1rem;
+}
+
+.app-header div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.app-header button:not(.danger) {
+  padding: 0.35rem 0.75rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.app-header .danger {
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  color: #c5221f;
+  border: 1px solid #c5221f;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.app-header .danger:hover {
+  background: #c5221f;
+  color: #fff;
+}
+
+.app-card .block-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.app-card .block-reason {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.app-card .muted.small {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 0.5rem;
+}
+
+.empty {
+  color: #666;
+  font-style: italic;
+}
+
+.apps-page .error {
+  color: #c5221f;
+}
+
+.apps-page .error.banner,
+.users-page .error.banner {
+  background: #fdecea;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border: 1px solid #f5c6cb;
+}

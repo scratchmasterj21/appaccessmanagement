@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "accessConfig": {
+      ".read": true,
+      ".write": "auth != null"
+    }
+  }
+}

@@ -1,0 +1,160 @@
+.users-page h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+}
+
+.users-page .muted {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 1.25rem;
+}
+
+.users-page .card-inline {
+  margin-bottom: 1.25rem;
+}
+
+.users-page .card-inline input {
+  max-width: 280px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+.users-page .card-inline button {
+  padding: 0.5rem 1rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.user-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.user-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.user-header .danger {
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  color: #c5221f;
+  border: 1px solid #c5221f;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.user-overrides {
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.add-override {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.add-override select {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.add-override button {
+  padding: 0.4rem 0.75rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.add-override button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.override-block {
+  background: #fafafa;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #eee;
+}
+
+.override-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.override-header .danger.small {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  background: transparent;
+  color: #c5221f;
+  border: 1px solid #c5221f;
+  border-radius: 4px;
+}
+
+.block-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.override-block input[type="text"] {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.override-schedule {
+  margin-top: 0.5rem;
+}
+
+.override-schedule > button {
+  padding: 0.35rem 0.75rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.override-schedule > button:hover {
+  background: #1557b0;
+}
+
+.users-page .empty {
+  color: #666;
+  font-style: italic;
+}
+
+.users-page .error {
+  color: #c5221f;
+}

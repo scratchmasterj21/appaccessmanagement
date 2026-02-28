@@ -1,0 +1,99 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.layout-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.layout-nav a {
+  color: #ccc;
+  text-decoration: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+}
+
+.layout-nav a:hover {
+  color: #fff;
+}
+
+.layout-nav a.active {
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+}
+
+.layout-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.layout-user span {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.layout-user button {
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  border: 1px solid #666;
+  color: #ccc;
+  border-radius: 4px;
+}
+
+.layout-user button:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.layout-main {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.loading, .auth-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+}
+
+.auth-gate button {
+  padding: 0.6rem 1.2rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.auth-gate button:hover {
+  background: #1557b0;
+}
+
+.auth-gate h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.auth-gate p {
+  margin: 0;
+  color: #666;
+}

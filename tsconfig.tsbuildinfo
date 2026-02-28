@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/firebase.ts","./src/main.tsx","./src/types.ts","./src/vite-env.d.ts","./src/components/layout.tsx","./src/components/scheduleeditor.tsx","./src/contexts/authcontext.tsx","./src/hooks/useaccessconfig.ts","./src/lib/firebasekeys.ts","./src/pages/apps.tsx","./src/pages/global.tsx","./src/pages/users.tsx"],"version":"5.6.3"}

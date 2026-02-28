@@ -1,0 +1,87 @@
+.schedule-editor {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #fafafa;
+}
+
+.schedule-mode {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.schedule-mode label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.day-section {
+  margin-bottom: 1rem;
+}
+
+.day-section strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  text-transform: capitalize;
+}
+
+.time-windows {
+  margin-bottom: 0.5rem;
+}
+
+.time-window-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.time-window-row span {
+  flex: 1;
+}
+
+.danger.small {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  background: transparent;
+  color: #c5221f;
+  border: 1px solid #c5221f;
+  border-radius: 4px;
+}
+
+.danger.small:hover {
+  background: #c5221f;
+  color: #fff;
+}
+
+.add-window {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-window input[type="time"] {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.add-window button {
+  padding: 0.35rem 0.75rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.add-window button:hover {
+  background: #1557b0;
+}
+
+.days-grid {
+  display: grid;
+  gap: 1rem;
+}
