@@ -88,7 +88,7 @@ export default function Users() {
   return (
     <div className="users-page">
       <h1>User overrides</h1>
-      <p className="muted">Block users from specific apps or give them custom schedules.</p>
+      <p className="muted">Block users from specific apps or give them custom schedules. Custom schedule times are in <strong>JST (Japan Standard Time)</strong>.</p>
 
       {error && <p className="error banner">Error: {error}</p>}
       {addError && <p className="error banner">Add failed: {addError}</p>}

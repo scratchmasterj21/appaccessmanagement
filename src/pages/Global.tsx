@@ -29,11 +29,19 @@ export default function Global() {
     await updateConfig({ defaultAllow: !config.defaultAllow });
   };
 
+  /** Treat datetime-local value (YYYY-MM-DDTHH:mm) as JST and store as ISO with offset. */
+  const toJSTISO = (v: string): string => {
+    if (!v) return v;
+    if (/[Z+]/.test(v)) return v; // already has timezone
+    const withSeconds = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v) ? `${v}:00` : v;
+    return `${withSeconds}+09:00`;
+  };
+
   const addBlackout = async () => {
     if (!blackoutForm.start || !blackoutForm.end) return;
     const entry: Blackout = {
-      start: blackoutForm.start,
-      end: blackoutForm.end,
+      start: toJSTISO(blackoutForm.start),
+      end: toJSTISO(blackoutForm.end),
       reason: blackoutForm.reason?.trim() || undefined,
     };
     await updateConfig({ blackouts: [...blackouts, entry] });
@@ -86,7 +94,7 @@ export default function Global() {
 
       <section className="card">
         <h2>Blackouts</h2>
-        <p className="muted">Block all apps during these periods (except allowlisted users).</p>
+        <p className="muted">Block all apps during these periods (except allowlisted users). Start and end times are in <strong>JST (Japan Standard Time)</strong>.</p>
         <div className="blackout-form">
           <input
             type="datetime-local"
