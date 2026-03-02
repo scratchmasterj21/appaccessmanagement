@@ -75,6 +75,7 @@ export default function ScheduleEditor({ schedule, onChange }: Props) {
 
   return (
     <div className="schedule-editor">
+      <p className="schedule-tz-note">All times in JST (Japan Standard Time).</p>
       <div className="schedule-mode">
         <label>
           <input

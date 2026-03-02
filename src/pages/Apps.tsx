@@ -60,7 +60,7 @@ export default function Apps() {
   return (
     <div className="apps-page">
       <h1>Apps</h1>
-      <p className="muted">Configure time-based access per app. Add an app and set its schedule.</p>
+      <p className="muted">Configure time-based access per app. Schedule times are in <strong>JST (Japan Standard Time)</strong>. Add an app and set its schedule.</p>
 
       {error && <p className="error banner">Error: {error}</p>}
       {addError && <p className="error banner">Add failed: {addError}</p>}

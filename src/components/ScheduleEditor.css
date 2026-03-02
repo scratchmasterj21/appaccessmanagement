@@ -5,6 +5,12 @@
   background: #fafafa;
 }
 
+.schedule-tz-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
 .schedule-mode {
   display: flex;
   gap: 1rem;
