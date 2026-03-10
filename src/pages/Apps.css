@@ -83,6 +83,23 @@
   color: #fff;
 }
 
+.app-card .playtime-limit-inline {
+  margin-bottom: 0.75rem;
+}
+
+.app-card .playtime-limit-inline input[type="number"] {
+  width: 5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+.app-card .playtime-limit-inline .muted.small {
+  display: block;
+  margin-top: 0.25rem;
+}
+
 .app-card .block-toggle {
   display: flex;
   align-items: center;

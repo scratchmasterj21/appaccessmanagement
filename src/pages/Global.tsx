@@ -57,6 +57,25 @@ export default function Global() {
       <h1>Global settings</h1>
 
       <section className="card">
+        <h2>Daily playtime limit (global default)</h2>
+        <p className="muted">Default daily playtime per app (minutes). Use 0 or leave empty for no limit. Overridden by per-app and per-user settings.</p>
+        <div className="add-row">
+          <input
+            type="number"
+            min={0}
+            placeholder="e.g. 120 (2 hours)"
+            value={config.dailyPlaytimeLimitMinutes && config.dailyPlaytimeLimitMinutes > 0 ? config.dailyPlaytimeLimitMinutes : ''}
+            onChange={(e) => {
+              const v = e.target.value;
+              const num = v === '' ? 0 : Math.max(0, parseInt(v, 10));
+              updateConfig({ dailyPlaytimeLimitMinutes: num });
+            }}
+          />
+          <span className="muted">minutes per app per day</span>
+        </div>
+      </section>
+
+      <section className="card">
         <h2>Default allow</h2>
         <p className="muted">When an app has no rules, allow or deny access by default.</p>
         <label className="toggle">

@@ -22,12 +22,21 @@ export interface AppConfig {
   /** When true, app is disabled for everyone (allowlisted users can still bypass in checkaccess). */
   blocked?: boolean;
   reason?: string;
+  /** Daily playtime limit (minutes) for this app. Overrides global default. */
+  dailyPlaytimeLimitMinutes?: number;
 }
 
 export interface UserAppOverride {
   blocked?: boolean;
   reason?: string;
   schedule?: Schedule;
+  /** Per-user per-app daily playtime limit (minutes). Overrides app limit for this user. */
+  dailyPlaytimeLimitMinutes?: number;
+}
+
+/** Per-user daily playtime cap (total across all apps). */
+export interface UserLimit {
+  dailyPlaytimeLimitMinutes?: number;
 }
 
 export interface Blackout {
@@ -42,6 +51,10 @@ export interface AccessConfig {
   users?: Record<string, Record<string, UserAppOverride>>;
   blackouts?: Blackout[];
   allowlist?: string[];
+  /** Global default daily playtime limit (minutes) per app. Use 0 or omit for no limit. */
+  dailyPlaytimeLimitMinutes?: number;
+  /** Per-user overrides: total daily cap (minutes across all apps). */
+  userLimits?: Record<string, UserLimit>;
 }
 
 export const DAYS: (keyof Schedule)[] = [
@@ -54,4 +67,5 @@ export const DEFAULT_ACCESS_CONFIG: AccessConfig = {
   users: {},
   blackouts: [],
   allowlist: [],
+  userLimits: {},
 };

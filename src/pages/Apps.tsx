@@ -93,6 +93,23 @@ export default function Apps() {
                 </button>
               </div>
             </div>
+            <div className="playtime-limit-inline">
+              <label>
+                Daily playtime limit (min):{' '}
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="default"
+                  value={apps[appId].dailyPlaytimeLimitMinutes ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    const num = v === '' ? undefined : Math.max(0, parseInt(v, 10));
+                    updateApp(appId, { ...apps[appId], dailyPlaytimeLimitMinutes: num });
+                  }}
+                />
+              </label>
+              <span className="muted small">0 or empty = use global default</span>
+            </div>
             <label className="block-toggle">
               <input
                 type="checkbox"

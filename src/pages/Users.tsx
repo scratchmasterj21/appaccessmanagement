@@ -85,6 +85,17 @@ export default function Users() {
     updateOverride(email, appId)({ ...current, schedule });
   };
 
+  const userLimits = config.userLimits ?? {};
+  const setUserDailyCap = (email: string) => (minutes: number | undefined) => {
+    const next = { ...userLimits };
+    if (minutes === undefined || minutes <= 0) {
+      delete next[email];
+    } else {
+      next[email] = { dailyPlaytimeLimitMinutes: minutes };
+    }
+    updateConfig({ userLimits: next });
+  };
+
   return (
     <div className="users-page">
       <h1>User overrides</h1>
@@ -116,6 +127,22 @@ export default function Users() {
               >
                 Remove user
               </button>
+            </div>
+            <div className="user-daily-cap">
+              <label>
+                Daily cap (total across all apps, min):{' '}
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="no cap"
+                  value={userLimits[email]?.dailyPlaytimeLimitMinutes ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setUserDailyCap(email)(v === '' ? undefined : Math.max(0, parseInt(v, 10)));
+                  }}
+                />
+              </label>
+              <span className="muted small">0 or empty = no total cap</span>
             </div>
             <div className="user-overrides">
               <div className="add-override">
@@ -150,6 +177,23 @@ export default function Users() {
                     >
                       Remove override
                     </button>
+                  </div>
+                  <div className="playtime-limit-inline">
+                    <label>
+                      Daily playtime (min):{' '}
+                      <input
+                        type="number"
+                        min={0}
+                        placeholder="use app default"
+                        value={override.dailyPlaytimeLimitMinutes ?? ''}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          const num = v === '' ? undefined : Math.max(0, parseInt(v, 10));
+                          updateOverride(email, appId)({ ...override, dailyPlaytimeLimitMinutes: num });
+                        }}
+                      />
+                    </label>
+                    <span className="muted small">overrides app limit for this user</span>
                   </div>
                   <label className="block-toggle">
                     <input

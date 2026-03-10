@@ -59,6 +59,40 @@
   font-size: 0.9rem;
 }
 
+.user-daily-cap {
+  margin-bottom: 0.75rem;
+}
+
+.user-daily-cap input[type="number"] {
+  width: 5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+.user-daily-cap .muted.small {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.override-block .playtime-limit-inline {
+  margin-bottom: 0.5rem;
+}
+
+.override-block .playtime-limit-inline input[type="number"] {
+  width: 5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+
+.override-block .playtime-limit-inline .muted.small {
+  display: block;
+  margin-top: 0.25rem;
+}
+
 .user-overrides {
   border-top: 1px solid #eee;
   padding-top: 1rem;

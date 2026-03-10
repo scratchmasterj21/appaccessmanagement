@@ -19,6 +19,7 @@ function encodeField(
     users: {},
     blackouts: [],
     allowlist: [],
+    userLimits: {},
     [key]: value,
   };
   const encoded = accessConfigToFirebase(config);
@@ -32,6 +33,7 @@ export function useAccessConfig() {
     users: {},
     blackouts: [],
     allowlist: [],
+    userLimits: {},
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

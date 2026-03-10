@@ -3,7 +3,7 @@
  * Encode/decode so we can store emails (e.g. user@domain.com) and app IDs safely.
  */
 
-import type { AccessConfig, AppConfig, Schedule, UserAppOverride, Blackout } from '../types';
+import type { AccessConfig, AppConfig, Schedule, UserAppOverride, UserLimit, Blackout } from '../types';
 
 const MAP: [string, string][] = [
   ['.', '__DOT__'],
@@ -99,6 +99,7 @@ export function accessConfigFromFirebase(raw: unknown): AccessConfig {
       users: {},
       blackouts: [],
       allowlist: [],
+      userLimits: {},
     };
   }
   const o = raw as Record<string, unknown>;
@@ -137,12 +138,22 @@ export function accessConfigFromFirebase(raw: unknown): AccessConfig {
     }
     users[email] = overrides;
   }
+  const userLimitsRaw =
+    o.userLimits != null && typeof o.userLimits === 'object' && !Array.isArray(o.userLimits)
+      ? (o.userLimits as Record<string, UserLimit>)
+      : {};
+  const userLimits: Record<string, UserLimit> = {};
+  for (const encEmail of Object.keys(userLimitsRaw)) {
+    userLimits[decodeKey(encEmail)] = userLimitsRaw[encEmail];
+  }
   return {
     defaultAllow: Boolean(o.defaultAllow),
     apps,
     users,
     blackouts: toArray<Blackout>(o.blackouts),
     allowlist: toArray<string>(o.allowlist),
+    dailyPlaytimeLimitMinutes: typeof o.dailyPlaytimeLimitMinutes === 'number' ? o.dailyPlaytimeLimitMinutes : undefined,
+    userLimits,
   };
 }
 
@@ -156,11 +167,20 @@ export function accessConfigToFirebase(config: AccessConfig): Record<string, unk
   for (const email of Object.keys(config.users || {})) {
     usersEnc[encodeKey(email)] = encodeShallow(config.users![email]);
   }
-  return {
+  const userLimitsEnc: Record<string, UserLimit> = {};
+  for (const email of Object.keys(config.userLimits || {})) {
+    userLimitsEnc[encodeKey(email)] = config.userLimits![email];
+  }
+  const out: Record<string, unknown> = {
     defaultAllow: config.defaultAllow,
     apps: appsEnc,
     users: usersEnc,
     blackouts: config.blackouts ?? [],
     allowlist: config.allowlist ?? [],
   };
+  if (config.dailyPlaytimeLimitMinutes !== undefined && config.dailyPlaytimeLimitMinutes !== null) {
+    out.dailyPlaytimeLimitMinutes = config.dailyPlaytimeLimitMinutes;
+  }
+  if (Object.keys(userLimitsEnc).length > 0) out.userLimits = userLimitsEnc;
+  return out;
 }
