@@ -61,6 +61,32 @@ export interface AccessConfigRaw {
 /** Day names in order Sunday=0 to Saturday=6 (JS getDay()). */
 const DAY_NAMES: (keyof Schedule)[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
+const SCHEDULE_KEYS: (keyof Schedule)[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'weekdays', 'weekends'];
+
+function isTimeWindow(w: unknown): w is TimeWindow {
+  return !!w && typeof w === 'object' && typeof (w as TimeWindow).start === 'string' && typeof (w as TimeWindow).end === 'string';
+}
+
+/** Firebase can return arrays as { "0": x, "1": y }. Convert to real array. */
+function toTimeWindowArray(val: unknown): TimeWindow[] {
+  if (Array.isArray(val)) return val.filter(isTimeWindow);
+  if (!val || typeof val !== 'object') return [];
+  const o = val as Record<string, unknown>;
+  const keys = Object.keys(o).filter((k) => /^\d+$/.test(k)).sort((a, b) => Number(a) - Number(b));
+  return keys.map((k) => o[k]).filter(isTimeWindow);
+}
+
+/** Normalize schedule from Firebase so weekdays/weekends/each day are always TimeWindow[]. */
+function normalizeSchedule(schedule: Record<string, unknown> | null | undefined): Schedule {
+  if (!schedule || typeof schedule !== 'object') return {};
+  const out: Schedule = {};
+  for (const k of SCHEDULE_KEYS) {
+    const arr = toTimeWindowArray(schedule[k]);
+    if (arr.length > 0) (out as Record<string, TimeWindow[]>)[k] = arr;
+  }
+  return out;
+}
+
 /** Get current date in JST as YYYY-MM-DD. */
 export function getTodayJST(): string {
   const now = new Date();
@@ -77,6 +103,17 @@ function getTimeJST(now: Date): string {
   const h = String(jst.getUTCHours()).padStart(2, '0');
   const m = String(jst.getUTCMinutes()).padStart(2, '0');
   return `${h}:${m}`;
+}
+
+/** Return current time and date in JST for debugging (schedule uses JST). */
+export function getCurrentJST(now: Date): { timeJST: string; dateJST: string } {
+  const jst = new Date(now.getTime() + JST_OFFSET_MS);
+  const y = jst.getUTCFullYear();
+  const mo = String(jst.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(jst.getUTCDate()).padStart(2, '0');
+  const h = String(jst.getUTCHours()).padStart(2, '0');
+  const min = String(jst.getUTCMinutes()).padStart(2, '0');
+  return { timeJST: `${h}:${min}`, dateJST: `${y}-${mo}-${d}` };
 }
 
 /** Parse HH:MM to minutes since midnight. */
@@ -97,10 +134,10 @@ function isInWindow(timeMinutes: number, window: TimeWindow): boolean {
 function getWindowsForDay(schedule: Schedule, dayOfWeek: number): TimeWindow[] {
   const dayName = DAY_NAMES[dayOfWeek];
   const specific = schedule[dayName];
-  if (specific && specific.length > 0) return specific;
+  if (Array.isArray(specific) && specific.length > 0) return specific;
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
   const fallback = isWeekend ? schedule.weekends : schedule.weekdays;
-  return fallback ?? [];
+  return Array.isArray(fallback) ? fallback : [];
 }
 
 /** True if current time (in JST) is within the schedule. */
@@ -141,11 +178,15 @@ function decodeKey(key: string): string {
   return s;
 }
 
-/** Normalize apps/users from Firebase (encoded keys -> decoded). */
+/** Normalize apps/users from Firebase (encoded keys -> decoded, schedules as arrays). */
 export function normalizeConfig(raw: AccessConfigRaw): AccessConfigRaw {
   const apps: Record<string, AppConfig> = {};
   for (const k of Object.keys(raw.apps || {})) {
-    apps[decodeKey(k)] = raw.apps[k];
+    const app = raw.apps[k];
+    apps[decodeKey(k)] = {
+      ...app,
+      schedule: normalizeSchedule(app?.schedule as Record<string, unknown>),
+    };
   }
   const users: Record<string, Record<string, UserAppOverride>> = {};
   for (const encEmail of Object.keys(raw.users || {})) {
@@ -154,7 +195,11 @@ export function normalizeConfig(raw: AccessConfigRaw): AccessConfigRaw {
     const overrides: Record<string, UserAppOverride> = {};
     if (inner && typeof inner === 'object') {
       for (const encAppId of Object.keys(inner)) {
-        overrides[decodeKey(encAppId)] = inner[encAppId];
+        const ov = inner[encAppId];
+        overrides[decodeKey(encAppId)] = {
+          ...ov,
+          schedule: ov?.schedule ? normalizeSchedule(ov.schedule as Record<string, unknown>) : undefined,
+        };
       }
     }
     users[email] = overrides;

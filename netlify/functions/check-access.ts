@@ -7,6 +7,7 @@ import { getStore } from '@netlify/blobs';
 import type { AccessConfigRaw, PlaytimeUsage } from './_shared/accessCheck';
 import {
   getTodayJST,
+  getCurrentJST,
   normalizeConfig,
   checkSchedule,
   checkPlaytime,
@@ -85,6 +86,7 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
     const scheduleResult = checkSchedule(config, email, appId, now);
 
     if (!scheduleResult.allowed) {
+      const jst = getCurrentJST(now);
       return {
         statusCode: 200,
         headers: CORS_HEADERS,
@@ -95,6 +97,8 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
           playtimeAllowed: true,
           timeLeftMinutes: 0,
           usedTodayMinutes: 0,
+          currentTimeJST: jst.timeJST,
+          currentDateJST: jst.dateJST,
         }),
       };
     }
