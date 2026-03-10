@@ -116,6 +116,30 @@ export function getCurrentJST(now: Date): { timeJST: string; dateJST: string } {
   return { timeJST: `${h}:${min}`, dateJST: `${y}-${mo}-${d}` };
 }
 
+/** Get the windows we're checking for schedule (for debug when denying "outside schedule"). */
+export function getScheduleDebugInfo(
+  config: AccessConfigRaw,
+  email: string,
+  appId: string,
+  now: Date
+): { currentTimeJST: string; currentDateJST: string; dayOfWeek: number; checkedWindows: TimeWindow[]; appFound: boolean } {
+  const jst = getCurrentJST(now);
+  const jstDate = new Date(now.getTime() + JST_OFFSET_MS);
+  const dayOfWeek = jstDate.getUTCDay();
+  const app = config.apps?.[appId.toLowerCase()];
+  const appFound = !!app;
+  const override = config.users?.[email.toLowerCase()]?.[appId.toLowerCase()];
+  const schedule = override?.schedule ?? app?.schedule;
+  const windows = schedule ? getWindowsForDay(schedule, dayOfWeek) : [];
+  return {
+    currentTimeJST: jst.timeJST,
+    currentDateJST: jst.dateJST,
+    dayOfWeek,
+    checkedWindows: windows,
+    appFound,
+  };
+}
+
 /** Parse HH:MM to minutes since midnight. */
 function parseHHMM(s: string): number {
   const [h, m] = s.split(':').map(Number);
@@ -178,25 +202,27 @@ function decodeKey(key: string): string {
   return s;
 }
 
-/** Normalize apps/users from Firebase (encoded keys -> decoded, schedules as arrays). */
+/** Normalize apps/users from Firebase (encoded keys -> decoded, schedules as arrays). Keys lowercased for case-insensitive lookup. */
 export function normalizeConfig(raw: AccessConfigRaw): AccessConfigRaw {
   const apps: Record<string, AppConfig> = {};
   for (const k of Object.keys(raw.apps || {})) {
     const app = raw.apps[k];
-    apps[decodeKey(k)] = {
+    const appId = decodeKey(k).toLowerCase();
+    apps[appId] = {
       ...app,
       schedule: normalizeSchedule(app?.schedule as Record<string, unknown>),
     };
   }
   const users: Record<string, Record<string, UserAppOverride>> = {};
   for (const encEmail of Object.keys(raw.users || {})) {
-    const email = decodeKey(encEmail);
+    const email = decodeKey(encEmail).toLowerCase();
     const inner = raw.users![encEmail];
     const overrides: Record<string, UserAppOverride> = {};
     if (inner && typeof inner === 'object') {
       for (const encAppId of Object.keys(inner)) {
         const ov = inner[encAppId];
-        overrides[decodeKey(encAppId)] = {
+        const aid = decodeKey(encAppId).toLowerCase();
+        overrides[aid] = {
           ...ov,
           schedule: ov?.schedule ? normalizeSchedule(ov.schedule as Record<string, unknown>) : undefined,
         };
@@ -206,12 +232,16 @@ export function normalizeConfig(raw: AccessConfigRaw): AccessConfigRaw {
   }
   const userLimits: Record<string, UserLimit> = {};
   for (const encEmail of Object.keys(raw.userLimits || {})) {
-    userLimits[decodeKey(encEmail)] = raw.userLimits![encEmail];
+    userLimits[decodeKey(encEmail).toLowerCase()] = raw.userLimits![encEmail];
   }
+  const allowlist: string[] = Array.isArray(raw.allowlist)
+    ? raw.allowlist.map((e) => (typeof e === 'string' ? e.toLowerCase() : String(e)))
+    : [];
   return {
     ...raw,
     apps,
     users,
+    allowlist,
     userLimits: Object.keys(userLimits).length ? userLimits : raw.userLimits,
   };
 }
@@ -221,7 +251,7 @@ export interface ScheduleCheckResult {
   reason?: string;
 }
 
-/** Check schedule + blocked + blackout. Allowlist bypasses everything. */
+/** Check schedule + blocked + blackout. Allowlist bypasses everything. Email/appId should be lowercase. */
 export function checkSchedule(
   config: AccessConfigRaw,
   email: string,
@@ -229,7 +259,8 @@ export function checkSchedule(
   now: Date
 ): ScheduleCheckResult {
   const allowlist = config.allowlist ?? [];
-  if (allowlist.includes(email.toLowerCase())) {
+  const emailLower = email.toLowerCase();
+  if (allowlist.some((e) => (typeof e === 'string' ? e.toLowerCase() : e) === emailLower)) {
     return { allowed: true };
   }
 
