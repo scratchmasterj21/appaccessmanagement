@@ -65,7 +65,11 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
       return {
         statusCode: 400,
         headers: CORS_HEADERS,
-        body: JSON.stringify({ error: 'Invalid JSON body', allowed: false }),
+        body: JSON.stringify({
+          allowed: false,
+          reason: 'Invalid JSON body',
+          error: 'Invalid JSON body',
+        }),
       };
     }
   }
@@ -74,7 +78,11 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
     return {
       statusCode: 400,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Missing email or appId', allowed: false }),
+      body: JSON.stringify({
+        allowed: false,
+        reason: 'Missing email or appId',
+        error: 'Missing email or appId',
+      }),
     };
   }
 
@@ -148,7 +156,11 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
     return {
       statusCode: 500,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ error: message, allowed: false }),
+      body: JSON.stringify({
+        allowed: false,
+        reason: message,
+        error: message,
+      }),
     };
   }
 };
