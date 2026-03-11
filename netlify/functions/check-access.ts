@@ -129,14 +129,15 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
 
     const playtimeResult = checkPlaytime(config, email, appId, usage);
 
+    const allowed = playtimeResult.allowed;
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
       body: JSON.stringify({
-        allowed: playtimeResult.allowed,
-        reason: playtimeResult.allowed ? undefined : 'daily playtime limit reached',
+        allowed,
+        reason: allowed ? undefined : 'Daily playtime limit reached. You have used your allowed time for today.',
         scheduleAllowed: true,
-        playtimeAllowed: playtimeResult.allowed,
+        playtimeAllowed: allowed,
         timeLeftMinutes: playtimeResult.timeLeftMinutes,
         usedTodayMinutes: playtimeResult.usedTodayMinutes,
         usedTotalMinutes: playtimeResult.usedTotalMinutes,
