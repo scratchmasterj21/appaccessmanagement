@@ -181,6 +181,6 @@ export function accessConfigToFirebase(config: AccessConfig): Record<string, unk
   if (config.dailyPlaytimeLimitMinutes !== undefined && config.dailyPlaytimeLimitMinutes !== null) {
     out.dailyPlaytimeLimitMinutes = config.dailyPlaytimeLimitMinutes;
   }
-  if (Object.keys(userLimitsEnc).length > 0) out.userLimits = userLimitsEnc;
+  out.userLimits = userLimitsEnc;
   return out;
 }
