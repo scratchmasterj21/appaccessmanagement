@@ -3,8 +3,8 @@
  * POST body: { email, appId, minutesToAdd }.
  */
 
-import { getStore } from '@netlify/blobs';
 import { getTodayJST, playtimeBlobKey } from './_shared/accessCheck';
+import { getPlaytimeStore } from './_shared/blobs';
 import type { PlaytimeUsage } from './_shared/accessCheck';
 
 const CORS_HEADERS = {
@@ -60,7 +60,7 @@ export const handler = async (event: { httpMethod: string; body?: string }) => {
   }
 
   try {
-    const store = getStore({ name: 'playtime-usage' });
+    const store = getPlaytimeStore(event);
     const today = getTodayJST();
     const key = playtimeBlobKey(email, today);
 

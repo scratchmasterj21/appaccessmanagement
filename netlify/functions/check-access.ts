@@ -3,8 +3,8 @@
  * GET or POST with email, appId. Returns { allowed, reason?, timeLeftMinutes?, usedTodayMinutes?, scheduleAllowed?, playtimeAllowed? }.
  */
 
-import { getStore } from '@netlify/blobs';
 import type { AccessConfigRaw, PlaytimeUsage } from './_shared/accessCheck';
+import { getPlaytimeStore } from './_shared/blobs';
 import {
   getTodayJST,
   getCurrentJST,
@@ -129,7 +129,7 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
       };
     }
 
-    const store = getStore({ name: 'playtime-usage' });
+    const store = getPlaytimeStore(event);
     const today = getTodayJST();
     const key = playtimeBlobKey(email, today);
     const usageRaw = await store.get(key, { type: 'json' });
