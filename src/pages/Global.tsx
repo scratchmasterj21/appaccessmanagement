@@ -8,6 +8,7 @@ export default function Global() {
   const [newEmail, setNewEmail] = useState('');
   const [limitedEmail, setLimitedEmail] = useState('');
   const [limitedMinutes, setLimitedMinutes] = useState<string>('');
+  const [limitedUntilTime, setLimitedUntilTime] = useState<string>('');
   const [blackoutForm, setBlackoutForm] = useState<Partial<Blackout>>({ start: '', end: '', reason: '' });
 
   if (loading) return <p>Loading config…</p>;
@@ -32,11 +33,16 @@ export default function Global() {
     const email = limitedEmail.trim().toLowerCase();
     const minutes = Math.max(1, parseInt(limitedMinutes, 10) || 0);
     if (!email || minutes <= 0) return;
+    const until = limitedUntilTime.trim() ? limitedUntilTime.trim() : undefined;
     await updateConfig({
-      limitedAllowlist: { ...limitedAllowlist, [email]: { dailyPlaytimeLimitMinutes: minutes } },
+      limitedAllowlist: {
+        ...limitedAllowlist,
+        [email]: { dailyPlaytimeLimitMinutes: minutes, allowedUntilTime: until },
+      },
     });
     setLimitedEmail('');
     setLimitedMinutes('');
+    setLimitedUntilTime('');
   };
 
   const removeLimitedAllowlist = (email: string) => async () => {
@@ -45,16 +51,20 @@ export default function Global() {
     await updateConfig({ limitedAllowlist: next });
   };
 
-  const updateLimitedAllowlistMinutes = (email: string, minutes: number) => {
-    if (minutes <= 0) {
-      const next = { ...limitedAllowlist };
-      delete next[email];
-      updateConfig({ limitedAllowlist: next });
-    } else {
-      updateConfig({
-        limitedAllowlist: { ...limitedAllowlist, [email]: { dailyPlaytimeLimitMinutes: minutes } },
-      });
-    }
+  const updateLimitedAllowlistEntry = (
+    email: string,
+    patch: { dailyPlaytimeLimitMinutes?: number; allowedUntilTime?: string | null }
+  ) => {
+    const current = limitedAllowlist[email];
+    if (!current) return;
+    const next = {
+      ...current,
+      ...(patch.dailyPlaytimeLimitMinutes !== undefined && { dailyPlaytimeLimitMinutes: patch.dailyPlaytimeLimitMinutes }),
+      ...(patch.allowedUntilTime !== undefined && {
+        allowedUntilTime: patch.allowedUntilTime === null || patch.allowedUntilTime === '' ? undefined : patch.allowedUntilTime,
+      }),
+    };
+    updateConfig({ limitedAllowlist: { ...limitedAllowlist, [email]: next } });
   };
 
   const toggleDefaultAllow = async () => {
@@ -145,7 +155,7 @@ export default function Global() {
 
       <section className="card">
         <h2>Limited allowlist</h2>
-        <p className="muted">These users can access any app at any time (bypass schedule and app block) but have a daily time cap (total across all apps).</p>
+        <p className="muted">These users can access any app (bypass schedule and app block) but have a daily time cap. Optionally restrict to &quot;play until&quot; a time (JST).</p>
         <div className="add-row">
           <input
             type="email"
@@ -162,6 +172,14 @@ export default function Global() {
             onChange={(e) => setLimitedMinutes(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addLimitedAllowlist()}
           />
+          <input
+            type="time"
+            title="Play until (JST)"
+            value={limitedUntilTime}
+            onChange={(e) => setLimitedUntilTime(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addLimitedAllowlist()}
+          />
+          <span className="muted">until (JST)</span>
           <button type="button" onClick={addLimitedAllowlist}>Add</button>
         </div>
         <ul className="list">
@@ -173,9 +191,25 @@ export default function Global() {
                 min={1}
                 className="small-input"
                 value={entry.dailyPlaytimeLimitMinutes}
-                onChange={(e) => updateLimitedAllowlistMinutes(email, Math.max(1, parseInt(e.target.value, 10) || 0))}
+                onChange={(e) =>
+                  updateLimitedAllowlistEntry(email, {
+                    dailyPlaytimeLimitMinutes: Math.max(1, parseInt(e.target.value, 10) || 0),
+                  })
+                }
               />
-              <span className="muted">min/day total</span>
+              <span className="muted">min/day</span>
+              <input
+                type="time"
+                title="Play until (JST)"
+                className="small-input"
+                value={entry.allowedUntilTime ?? ''}
+                onChange={(e) =>
+                  updateLimitedAllowlistEntry(email, {
+                    allowedUntilTime: e.target.value ? e.target.value : null,
+                  })
+                }
+              />
+              <span className="muted">until (JST)</span>
               <button type="button" className="danger" onClick={removeLimitedAllowlist(email)}>Remove</button>
             </li>
           ))}

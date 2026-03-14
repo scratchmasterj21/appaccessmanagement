@@ -42,6 +42,8 @@ export interface UserLimit {
 /** Per-user daily cap (minutes) for limited-allowlist users. They bypass schedule/block but are limited by this total. */
 export interface LimitedAllowlistEntry {
   dailyPlaytimeLimitMinutes: number;
+  /** Optional: can only play until this time (JST), e.g. "21:00". Inclusive. Empty = no time limit. */
+  allowedUntilTime?: string;
 }
 
 export interface Blackout {

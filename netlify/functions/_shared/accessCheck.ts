@@ -50,6 +50,8 @@ export interface UserLimit {
 
 export interface LimitedAllowlistEntry {
   dailyPlaytimeLimitMinutes: number;
+  /** Optional: can only play until this time (JST), e.g. "21:00". Inclusive. */
+  allowedUntilTime?: string;
 }
 
 export interface AccessConfigRaw {
@@ -149,6 +151,13 @@ export function getScheduleDebugInfo(
 function parseHHMM(s: string): number {
   const [h, m] = s.split(':').map(Number);
   return (h ?? 0) * 60 + (m ?? 0);
+}
+
+/** True if timeJST (HH:MM) is before or equal to untilHHMM (HH:MM). Used for limited-allowlist "play until" check. */
+export function isBeforeOrAtTime(timeJST: string, untilHHMM: string): boolean {
+  const a = parseHHMM(timeJST);
+  const b = parseHHMM(untilHHMM);
+  return a <= b;
 }
 
 /** True if time (HH:MM) is inside window [start, end). End is exclusive. */

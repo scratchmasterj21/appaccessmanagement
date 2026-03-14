@@ -13,6 +13,7 @@ import {
   checkSchedule,
   checkPlaytime,
   playtimeBlobKey,
+  isBeforeOrAtTime,
 } from './_shared/accessCheck';
 
 const CORS_HEADERS = {
@@ -108,6 +109,24 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
     }
 
     if (limitedEntry) {
+      const untilTime = limitedEntry.allowedUntilTime?.trim();
+      if (untilTime) {
+        const { timeJST } = getCurrentJST(now);
+        if (!isBeforeOrAtTime(timeJST, untilTime)) {
+          return {
+            statusCode: 200,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({
+              allowed: false,
+              reason: `Outside your allowed time. You can play until ${untilTime} (JST).`,
+              scheduleAllowed: true,
+              playtimeAllowed: true,
+              timeLeftMinutes: 0,
+              usedTodayMinutes: 0,
+            }),
+          };
+        }
+      }
       const store = getPlaytimeStore(event);
       const today = getTodayJST();
       const key = playtimeBlobKey(email, today);
