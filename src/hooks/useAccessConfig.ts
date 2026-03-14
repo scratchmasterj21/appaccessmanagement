@@ -19,6 +19,7 @@ function encodeField(
     users: {},
     blackouts: [],
     allowlist: [],
+    limitedAllowlist: {},
     userLimits: {},
     [key]: value,
   };
@@ -33,6 +34,7 @@ export function useAccessConfig() {
     users: {},
     blackouts: [],
     allowlist: [],
+    limitedAllowlist: {},
     userLimits: {},
   });
   const [loading, setLoading] = useState(true);

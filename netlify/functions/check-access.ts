@@ -91,6 +91,50 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
     const now = new Date();
     const allowlist = config.allowlist ?? [];
     const isAllowlisted = allowlist.includes(email);
+    const limitedEntry = config.limitedAllowlist?.[email];
+
+    if (isAllowlisted) {
+      return {
+        statusCode: 200,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({
+          allowed: true,
+          scheduleAllowed: true,
+          playtimeAllowed: true,
+          timeLeftMinutes: 999,
+          usedTodayMinutes: 0,
+        }),
+      };
+    }
+
+    if (limitedEntry) {
+      const store = getPlaytimeStore(event);
+      const today = getTodayJST();
+      const key = playtimeBlobKey(email, today);
+      const usageRaw = await store.get(key, { type: 'json' });
+      const usage = usageRaw as PlaytimeUsage | null;
+      const playtimeResult = checkPlaytime(
+        config,
+        email,
+        appId,
+        usage,
+        limitedEntry.dailyPlaytimeLimitMinutes
+      );
+      const allowed = playtimeResult.allowed;
+      return {
+        statusCode: 200,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({
+          allowed,
+          reason: allowed ? undefined : 'Daily playtime limit reached. You have used your allowed time for today.',
+          scheduleAllowed: true,
+          playtimeAllowed: allowed,
+          timeLeftMinutes: playtimeResult.timeLeftMinutes,
+          usedTodayMinutes: playtimeResult.usedTodayMinutes,
+          usedTotalMinutes: playtimeResult.usedTotalMinutes,
+        }),
+      };
+    }
 
     const scheduleResult = checkSchedule(config, email, appId, now);
 
@@ -111,20 +155,6 @@ export const handler = async (event: { httpMethod: string; queryStringParameters
           checkedWindows: debug.checkedWindows,
           appFound: debug.appFound,
           dayOfWeekJST: debug.dayOfWeek,
-        }),
-      };
-    }
-
-    if (isAllowlisted) {
-      return {
-        statusCode: 200,
-        headers: CORS_HEADERS,
-        body: JSON.stringify({
-          allowed: true,
-          scheduleAllowed: true,
-          playtimeAllowed: true,
-          timeLeftMinutes: 999,
-          usedTodayMinutes: 0,
         }),
       };
     }

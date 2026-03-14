@@ -6,12 +6,15 @@ import './Global.css';
 export default function Global() {
   const { config, loading, error, updateConfig } = useAccessConfig();
   const [newEmail, setNewEmail] = useState('');
+  const [limitedEmail, setLimitedEmail] = useState('');
+  const [limitedMinutes, setLimitedMinutes] = useState<string>('');
   const [blackoutForm, setBlackoutForm] = useState<Partial<Blackout>>({ start: '', end: '', reason: '' });
 
   if (loading) return <p>Loading config…</p>;
   if (error) return <p className="error">Error: {error}</p>;
 
   const allowlist = config.allowlist ?? [];
+  const limitedAllowlist = config.limitedAllowlist ?? {};
   const blackouts = config.blackouts ?? [];
 
   const addAllowlist = async () => {
@@ -23,6 +26,35 @@ export default function Global() {
 
   const removeAllowlist = (email: string) => async () => {
     await updateConfig({ allowlist: allowlist.filter((e) => e !== email) });
+  };
+
+  const addLimitedAllowlist = async () => {
+    const email = limitedEmail.trim().toLowerCase();
+    const minutes = Math.max(1, parseInt(limitedMinutes, 10) || 0);
+    if (!email || minutes <= 0) return;
+    await updateConfig({
+      limitedAllowlist: { ...limitedAllowlist, [email]: { dailyPlaytimeLimitMinutes: minutes } },
+    });
+    setLimitedEmail('');
+    setLimitedMinutes('');
+  };
+
+  const removeLimitedAllowlist = (email: string) => async () => {
+    const next = { ...limitedAllowlist };
+    delete next[email];
+    await updateConfig({ limitedAllowlist: next });
+  };
+
+  const updateLimitedAllowlistMinutes = (email: string, minutes: number) => {
+    if (minutes <= 0) {
+      const next = { ...limitedAllowlist };
+      delete next[email];
+      updateConfig({ limitedAllowlist: next });
+    } else {
+      updateConfig({
+        limitedAllowlist: { ...limitedAllowlist, [email]: { dailyPlaytimeLimitMinutes: minutes } },
+      });
+    }
   };
 
   const toggleDefaultAllow = async () => {
@@ -106,6 +138,45 @@ export default function Global() {
             <li key={email}>
               <span>{email}</span>
               <button type="button" className="danger" onClick={removeAllowlist(email)}>Remove</button>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="card">
+        <h2>Limited allowlist</h2>
+        <p className="muted">These users can access any app at any time (bypass schedule and app block) but have a daily time cap (total across all apps).</p>
+        <div className="add-row">
+          <input
+            type="email"
+            placeholder="email@example.com"
+            value={limitedEmail}
+            onChange={(e) => setLimitedEmail(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addLimitedAllowlist()}
+          />
+          <input
+            type="number"
+            min={1}
+            placeholder="Daily cap (min)"
+            value={limitedMinutes}
+            onChange={(e) => setLimitedMinutes(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addLimitedAllowlist()}
+          />
+          <button type="button" onClick={addLimitedAllowlist}>Add</button>
+        </div>
+        <ul className="list">
+          {Object.entries(limitedAllowlist).map(([email, entry]) => (
+            <li key={email}>
+              <span>{email}</span>
+              <input
+                type="number"
+                min={1}
+                className="small-input"
+                value={entry.dailyPlaytimeLimitMinutes}
+                onChange={(e) => updateLimitedAllowlistMinutes(email, Math.max(1, parseInt(e.target.value, 10) || 0))}
+              />
+              <span className="muted">min/day total</span>
+              <button type="button" className="danger" onClick={removeLimitedAllowlist(email)}>Remove</button>
             </li>
           ))}
         </ul>

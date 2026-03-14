@@ -3,7 +3,7 @@
  * Encode/decode so we can store emails (e.g. user@domain.com) and app IDs safely.
  */
 
-import type { AccessConfig, AppConfig, Schedule, UserAppOverride, UserLimit, Blackout } from '../types';
+import type { AccessConfig, AppConfig, Schedule, UserAppOverride, UserLimit, LimitedAllowlistEntry, Blackout } from '../types';
 
 const MAP: [string, string][] = [
   ['.', '__DOT__'],
@@ -99,6 +99,7 @@ export function accessConfigFromFirebase(raw: unknown): AccessConfig {
       users: {},
       blackouts: [],
       allowlist: [],
+      limitedAllowlist: {},
       userLimits: {},
     };
   }
@@ -146,12 +147,24 @@ export function accessConfigFromFirebase(raw: unknown): AccessConfig {
   for (const encEmail of Object.keys(userLimitsRaw)) {
     userLimits[decodeKey(encEmail)] = userLimitsRaw[encEmail];
   }
+  const limitedAllowlistRaw =
+    o.limitedAllowlist != null && typeof o.limitedAllowlist === 'object' && !Array.isArray(o.limitedAllowlist)
+      ? (o.limitedAllowlist as Record<string, LimitedAllowlistEntry>)
+      : {};
+  const limitedAllowlist: Record<string, LimitedAllowlistEntry> = {};
+  for (const encEmail of Object.keys(limitedAllowlistRaw)) {
+    const entry = limitedAllowlistRaw[encEmail];
+    if (entry && typeof entry.dailyPlaytimeLimitMinutes === 'number' && entry.dailyPlaytimeLimitMinutes > 0) {
+      limitedAllowlist[decodeKey(encEmail)] = entry;
+    }
+  }
   return {
     defaultAllow: Boolean(o.defaultAllow),
     apps,
     users,
     blackouts: toArray<Blackout>(o.blackouts),
     allowlist: toArray<string>(o.allowlist),
+    limitedAllowlist,
     dailyPlaytimeLimitMinutes: typeof o.dailyPlaytimeLimitMinutes === 'number' ? o.dailyPlaytimeLimitMinutes : undefined,
     userLimits,
   };
@@ -171,12 +184,17 @@ export function accessConfigToFirebase(config: AccessConfig): Record<string, unk
   for (const email of Object.keys(config.userLimits || {})) {
     userLimitsEnc[encodeKey(email)] = config.userLimits![email];
   }
+  const limitedAllowlistEnc: Record<string, LimitedAllowlistEntry> = {};
+  for (const email of Object.keys(config.limitedAllowlist || {})) {
+    limitedAllowlistEnc[encodeKey(email)] = config.limitedAllowlist![email];
+  }
   const out: Record<string, unknown> = {
     defaultAllow: config.defaultAllow,
     apps: appsEnc,
     users: usersEnc,
     blackouts: config.blackouts ?? [],
     allowlist: config.allowlist ?? [],
+    limitedAllowlist: limitedAllowlistEnc,
   };
   if (config.dailyPlaytimeLimitMinutes !== undefined && config.dailyPlaytimeLimitMinutes !== null) {
     out.dailyPlaytimeLimitMinutes = config.dailyPlaytimeLimitMinutes;

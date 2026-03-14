@@ -39,6 +39,11 @@ export interface UserLimit {
   dailyPlaytimeLimitMinutes?: number;
 }
 
+/** Per-user daily cap (minutes) for limited-allowlist users. They bypass schedule/block but are limited by this total. */
+export interface LimitedAllowlistEntry {
+  dailyPlaytimeLimitMinutes: number;
+}
+
 export interface Blackout {
   start: string; // ISO datetime
   end: string;
@@ -51,6 +56,8 @@ export interface AccessConfig {
   users?: Record<string, Record<string, UserAppOverride>>;
   blackouts?: Blackout[];
   allowlist?: string[];
+  /** Users who bypass schedule and app block but have a daily time cap (total across all apps). */
+  limitedAllowlist?: Record<string, LimitedAllowlistEntry>;
   /** Global default daily playtime limit (minutes) per app. Use 0 or omit for no limit. */
   dailyPlaytimeLimitMinutes?: number;
   /** Per-user overrides: total daily cap (minutes across all apps). */
@@ -67,5 +74,6 @@ export const DEFAULT_ACCESS_CONFIG: AccessConfig = {
   users: {},
   blackouts: [],
   allowlist: [],
+  limitedAllowlist: {},
   userLimits: {},
 };

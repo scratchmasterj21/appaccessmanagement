@@ -48,12 +48,17 @@ export interface UserLimit {
   dailyPlaytimeLimitMinutes?: number;
 }
 
+export interface LimitedAllowlistEntry {
+  dailyPlaytimeLimitMinutes: number;
+}
+
 export interface AccessConfigRaw {
   defaultAllow: boolean;
   apps: Record<string, AppConfig>;
   users?: Record<string, Record<string, UserAppOverride>>;
   blackouts?: Blackout[];
   allowlist?: string[];
+  limitedAllowlist?: Record<string, LimitedAllowlistEntry>;
   dailyPlaytimeLimitMinutes?: number;
   userLimits?: Record<string, UserLimit>;
 }
@@ -234,6 +239,13 @@ export function normalizeConfig(raw: AccessConfigRaw): AccessConfigRaw {
   for (const encEmail of Object.keys(raw.userLimits || {})) {
     userLimits[decodeKey(encEmail).toLowerCase()] = raw.userLimits![encEmail];
   }
+  const limitedAllowlist: Record<string, LimitedAllowlistEntry> = {};
+  for (const encEmail of Object.keys(raw.limitedAllowlist || {})) {
+    const entry = raw.limitedAllowlist![encEmail];
+    if (entry && typeof entry.dailyPlaytimeLimitMinutes === 'number' && entry.dailyPlaytimeLimitMinutes > 0) {
+      limitedAllowlist[decodeKey(encEmail).toLowerCase()] = entry;
+    }
+  }
   const allowlist: string[] = Array.isArray(raw.allowlist)
     ? raw.allowlist.map((e) => (typeof e === 'string' ? e.toLowerCase() : String(e)))
     : [];
@@ -242,6 +254,7 @@ export function normalizeConfig(raw: AccessConfigRaw): AccessConfigRaw {
     apps,
     users,
     allowlist,
+    limitedAllowlist,
     userLimits: Object.keys(userLimits).length ? userLimits : raw.userLimits,
   };
 }
@@ -325,15 +338,31 @@ export interface PlaytimeCheckResult {
   usedTotalMinutes: number;
 }
 
-/** Check playtime: allowed if under limit. Allowlist is exempt (caller should skip if allowlist). */
+/**
+ * Check playtime: allowed if under limit. Allowlist is exempt (caller should skip if allowlist).
+ * If overrideTotalCap is set (e.g. for limited-allowlist users), only that total daily cap is used.
+ */
 export function checkPlaytime(
   config: AccessConfigRaw,
   email: string,
   appId: string,
-  usage: PlaytimeUsage | null
+  usage: PlaytimeUsage | null,
+  overrideTotalCap?: number | null
 ): PlaytimeCheckResult {
   const usedThisApp = usage?.apps?.[appId] ?? 0;
   const usedTotal = usage?.totalMinutes ?? 0;
+
+  if (overrideTotalCap != null && overrideTotalCap > 0) {
+    const remainingTotal = Math.max(0, overrideTotalCap - (usedTotal - usedThisApp));
+    const timeLeft = Math.max(0, remainingTotal - usedThisApp);
+    const allowed = usedTotal < overrideTotalCap;
+    return {
+      allowed,
+      timeLeftMinutes: timeLeft,
+      usedTodayMinutes: usedThisApp,
+      usedTotalMinutes: usedTotal,
+    };
+  }
 
   const limit = getPlaytimeLimit(config, email, appId);
   const userTotalCap = getUserTotalCap(config, email);

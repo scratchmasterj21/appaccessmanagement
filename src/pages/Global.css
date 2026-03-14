@@ -69,13 +69,24 @@
 .list li {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid #eee;
 }
 
+.list li .small-input {
+  width: 4rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 .list li:last-child {
   border-bottom: none;
+}
+
+.list li .danger {
+  margin-left: auto;
 }
 
 .list .danger {
