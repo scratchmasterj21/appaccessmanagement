@@ -5,17 +5,26 @@
 
 import { getTodayJST, playtimeBlobKey } from './_shared/accessCheck';
 import { getPlaytimeStore } from './_shared/blobs';
+import { isAuthorizedBySharedSecret } from './_shared/requestAuth';
 import type { PlaytimeUsage } from './_shared/accessCheck';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Access-Secret',
   'Content-Type': 'application/json',
 };
 
-export const handler = async (event: { httpMethod: string; body?: string }) => {
+export const handler = async (event: { httpMethod: string; headers?: Record<string, string>; body?: string }) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: CORS_HEADERS, body: '' };
+  }
+
+  if (!isAuthorizedBySharedSecret(event)) {
+    return {
+      statusCode: 401,
+      headers: CORS_HEADERS,
+      body: JSON.stringify({ error: 'Unauthorized' }),
+    };
   }
 
   if (event.httpMethod !== 'POST') {
