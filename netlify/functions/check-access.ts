@@ -13,6 +13,7 @@ import {
   normalizeConfig,
   checkSchedule,
   checkPlaytime,
+  accruePlaytime,
   playtimeBlobKey,
   isBeforeOrAtTime,
 } from './_shared/accessCheck';
@@ -121,11 +122,21 @@ export const handler = async (event: { httpMethod: string; headers?: Record<stri
       };
     }
 
+    const store = getPlaytimeStore(event);
+    const today = getTodayJST();
+    const key = playtimeBlobKey(email, today);
+    const usageRaw = await store.get(key, { type: 'json' });
+    const rawUsage = usageRaw as PlaytimeUsage | null;
+
+    // Server-side accrual: compute minutes since last seen and update usage
+    const usage = accruePlaytime(rawUsage, appId, now);
+
     if (limitedEntry) {
       const untilTime = limitedEntry.allowedUntilTime?.trim();
       if (untilTime) {
         const { timeJST } = getCurrentJST(now);
         if (!isBeforeOrAtTime(timeJST, untilTime)) {
+          await store.setJSON(key, usage);
           return {
             statusCode: 200,
             headers: CORS_HEADERS,
@@ -135,16 +146,12 @@ export const handler = async (event: { httpMethod: string; headers?: Record<stri
               scheduleAllowed: true,
               playtimeAllowed: true,
               timeLeftMinutes: 0,
-              usedTodayMinutes: 0,
+              usedTodayMinutes: usage.apps[appId] ?? 0,
+              usedTotalMinutes: usage.totalMinutes,
             }),
           };
         }
       }
-      const store = getPlaytimeStore(event);
-      const today = getTodayJST();
-      const key = playtimeBlobKey(email, today);
-      const usageRaw = await store.get(key, { type: 'json' });
-      const usage = usageRaw as PlaytimeUsage | null;
       const playtimeResult = checkPlaytime(
         config,
         email,
@@ -152,6 +159,7 @@ export const handler = async (event: { httpMethod: string; headers?: Record<stri
         usage,
         limitedEntry.dailyPlaytimeLimitMinutes
       );
+      await store.setJSON(key, usage);
       const allowed = playtimeResult.allowed;
       return {
         statusCode: 200,
@@ -181,7 +189,8 @@ export const handler = async (event: { httpMethod: string; headers?: Record<stri
           scheduleAllowed: false,
           playtimeAllowed: true,
           timeLeftMinutes: 0,
-          usedTodayMinutes: 0,
+          usedTodayMinutes: usage.apps[appId] ?? 0,
+          usedTotalMinutes: usage.totalMinutes,
           currentTimeJST: debug.currentTimeJST,
           currentDateJST: debug.currentDateJST,
           checkedWindows: debug.checkedWindows,
@@ -191,13 +200,8 @@ export const handler = async (event: { httpMethod: string; headers?: Record<stri
       };
     }
 
-    const store = getPlaytimeStore(event);
-    const today = getTodayJST();
-    const key = playtimeBlobKey(email, today);
-    const usageRaw = await store.get(key, { type: 'json' });
-    const usage = usageRaw as PlaytimeUsage | null;
-
     const playtimeResult = checkPlaytime(config, email, appId, usage);
+    await store.setJSON(key, usage);
 
     const allowed = playtimeResult.allowed;
     return {

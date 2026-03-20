@@ -338,6 +338,42 @@ export interface PlaytimeUsage {
   totalMinutes: number;
   apps: Record<string, number>;
   lastActivityAt?: string;
+  /** ISO timestamp of the last check-access call that returned allowed. Used for server-side accrual. */
+  lastSeenAt?: string;
+}
+
+const MAX_ACCRUAL_DELTA_MINUTES = 10;
+
+/**
+ * Server-side time accrual: compute minutes since last seen, update usage, return updated copy.
+ * Caps delta at MAX_ACCRUAL_DELTA_MINUTES to skip overnight / long gaps.
+ */
+export function accruePlaytime(
+  usage: PlaytimeUsage | null,
+  appId: string,
+  now: Date
+): PlaytimeUsage {
+  const base: PlaytimeUsage = {
+    totalMinutes: usage?.totalMinutes ?? 0,
+    apps: { ...(usage?.apps ?? {}) },
+    lastActivityAt: now.toISOString(),
+    lastSeenAt: now.toISOString(),
+  };
+
+  const lastSeen = usage?.lastSeenAt;
+  if (!lastSeen) return base;
+
+  const lastTime = new Date(lastSeen).getTime();
+  if (isNaN(lastTime)) return base;
+
+  const deltaMs = now.getTime() - lastTime;
+  const deltaMinutes = Math.floor(deltaMs / 60000);
+
+  if (deltaMinutes <= 0 || deltaMinutes > MAX_ACCRUAL_DELTA_MINUTES) return base;
+
+  base.totalMinutes += deltaMinutes;
+  base.apps[appId] = (base.apps[appId] ?? 0) + deltaMinutes;
+  return base;
 }
 
 export interface PlaytimeCheckResult {
